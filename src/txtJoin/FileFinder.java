@@ -11,53 +11,35 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class FileFinder extends Task<Void> {
+public class FileFinder {
 
-    final private String path;
-
-    final private List<File> list=new ArrayList<>();
-
-    public FileFinder(String path) {
-        this.path = path;
-    }
+    private ArrayList<File> txtFilesList = new ArrayList<>();
 
 
-    public void findIn(File fi) {
-        File[] files=fi.listFiles((f)->f.getName().endsWith(".txt") || f.isDirectory());
+    public void pullFilesFromFolder(File folder) {
 
-        if (files != null) {
-            for (File f : files)
-                if (f.isDirectory()) {
-                    findIn(f);
-                } else {
-                    list.add(f);
+        File[] filesList = folder.listFiles();
+        txtFilesList.addAll(Arrays.asList(folder.listFiles((dir, name) ->  name.endsWith(".txt"))));
+
+        if (filesList.length != 0) {
+
+            for (File entry : filesList) {
+                if (entry.isDirectory()) {
+                    pullFilesFromFolder(entry);
                 }
+            }
         }
     }
 
-    @Override
-    protected Void call() throws Exception {
+    public ArrayList<File> getTxtFilesList() {
 
-        File file = new File(path);
-        if (file.isDirectory()) {
-            findIn(file);
-        }
+        Comparator<File> fileNameComparator
+                = Comparator.comparing(
+                File::getName, String.CASE_INSENSITIVE_ORDER);
 
-        Collections.sort(list);
-        Controller controller = new Controller();
-        TxtFileWriter txtFileWriter = new TxtFileWriter(controller.getResultDir().getText());
-        txtFileWriter.write(list);
+        Collections.sort(txtFilesList, fileNameComparator);
 
-        TextArea textArea = controller.getTextArea();
-        List<String> txtLines = new ArrayList<>();
-        txtLines = Files.readAllLines(Paths.get(txtFileWriter.getFile().getPath()));
-
-        for(String line:txtLines){
-            textArea.appendText(line);
-        }
-
-        System.out.println(controller.getResultDir().getText());
-        return null;
+        return txtFilesList;
     }
 
 }

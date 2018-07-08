@@ -45,104 +45,44 @@ public class Controller implements Initializable {
         this.textArea = textArea;
     }
 
-    private Task task=null;
-
-
-    public ArrayList<File> txtFilesList = new ArrayList<>();
-
-    public void pullFilesFromFolder(File folder) {
-
-        File[] filesList = folder.listFiles();
-        txtFilesList.addAll(Arrays.asList(folder.listFiles((dir, name) ->  name.endsWith(".txt"))));
-
-        if (filesList.length != 0) {
-
-            for (File entry : filesList) {
-                if (entry.isDirectory()) {
-                    pullFilesFromFolder(entry);
-                }
-
-            }
-        }
-    }
-
-    public ArrayList<File> getTxtFilesList() {
-
-        Comparator<File> fileNameComparator
-                = Comparator.comparing(
-                File::getName, String.CASE_INSENSITIVE_ORDER);
-
-        Collections.sort(txtFilesList, fileNameComparator);
-
-        return txtFilesList;
-    }
-
-    public static void ifPathExists(File path){
-
-        if (!path.exists()){
-            System.out.println("This path does not exist! Please, new it up.");
-            System.exit(1);
-        }
-    }
-
-    private File file;
-
-
-    public void writeTXTFiles(ArrayList<File> files, File file) {
-
-
-        try {
-
-            for (File txtFile : files) {
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(txtFile.getAbsolutePath()), Charset.forName("utf-8")));
-                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file.getPath(),true)));
-                String s;
-                while ((s = reader.readLine()) != null)
-                    out.println(s);
-                out.close();
-                reader.close();
-            }
-
-        } catch (IOException e) {
-            e.getMessage();
-        }
-
-    }
-
-    public File getFile() {
-        return file;
-    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-//
+
     }
 
     @FXML
     protected void startSearch(ActionEvent event) {
 
-        final List<File> list=new ArrayList<>();
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("ERROR");
-        alert.setHeaderText(null);
-        alert.setContentText("Please, choose txt file!");
+        File pathToRootDir = new File(rootDir.getText());
+        if (!pathToRootDir.isDirectory()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("ERROR");
+            alert.setHeaderText(null);
+            alert.setContentText("Please, choose correct root directory!");
+            alert.showAndWait();
+        }
 
 
-        File path = new File(rootDir.getText());
-        ifPathExists(path);
+        File pathToResultDir = new File(resultDir.getText());
+        if (!pathToResultDir.isFile()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("ERROR");
+            alert.setHeaderText(null);
+            alert.setContentText("Result file is incorrect");
+            alert.showAndWait();
+        }
 
-        File path1 = new File(resultDir.getText());
-        //ifPathExists(path1);
+        FileFinder folderEntry = new FileFinder();
+        folderEntry.pullFilesFromFolder(pathToRootDir);
+        ArrayList<File> txtFiles = folderEntry.getTxtFilesList();
+        TxtFileWriter txtFileWriter = new TxtFileWriter(resultDir.getText());
+        txtFileWriter.writeTXTFiles(txtFiles);
 
-        Controller controller = new Controller();
-        controller.pullFilesFromFolder(path);
-        ArrayList<File> txtFiles = controller.getTxtFilesList();
-        controller.writeTXTFiles(txtFiles, path1);
 
         List<String> txtLines = new ArrayList<>();
         try{
-            txtLines = Files.readAllLines(Paths.get(path1.getPath()));
+            txtLines = Files.readAllLines(Paths.get(pathToResultDir.getPath()));
         }
         catch (IOException ex){
 

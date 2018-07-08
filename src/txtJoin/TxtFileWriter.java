@@ -6,28 +6,23 @@ import java.util.List;
 
 public class TxtFileWriter {
 
-
     private File file;
-
-    public File getFile() {
-        return file;
-    }
 
     public TxtFileWriter(String pathname) {
         this.file = new File(pathname);
     }
 
-    public void write(List<File> txtFiles) {
+    public void writeTXTFiles(ArrayList<File> files) {
+
 
         try {
 
-            for (File txtFile : txtFiles) {
+            for (File txtFile : files) {
                 BufferedReader in = new BufferedReader(new FileReader(txtFile.getAbsolutePath()));
-                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
+                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file,true)));
                 String s;
-                while ((s = in.readLine()) != null) {
+                while ((s = in.readLine()) != null)
                     out.println(s);
-                }
                 out.close();
                 in.close();
             }
@@ -35,6 +30,10 @@ public class TxtFileWriter {
         } catch (IOException e) {
             e.getMessage();
         }
+
     }
 
+    public File getFile() {
+        return file;
+    }
 }
