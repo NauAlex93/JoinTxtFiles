@@ -54,44 +54,47 @@ public class Controller implements Initializable {
     @FXML
     protected void startSearch(ActionEvent event) {
 
-        File pathToRootDir = new File(rootDir.getText());
-        if (!pathToRootDir.isDirectory()) {
+        File pathToRootDir = null;
+        File pathToResultDir = null;
+
+        if (!Files.isDirectory(Paths.get(rootDir.getText()))) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("ERROR");
             alert.setHeaderText(null);
             alert.setContentText("Please, choose correct root directory!");
             alert.showAndWait();
+        } else {
+
+            pathToRootDir = new File(rootDir.getText());
+
+            if (!resultDir.getText().endsWith(".txt")) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("ERROR");
+                alert.setHeaderText(null);
+                alert.setContentText("Result file is incorrect");
+                alert.showAndWait();
+            } else {
+                pathToResultDir = new File(resultDir.getText());
+                FileFinder folderEntry = new FileFinder();
+                folderEntry.pullFilesFromFolder(pathToRootDir);
+                ArrayList<File> txtFiles = folderEntry.getTxtFilesList();
+                TxtFileWriter txtFileWriter = new TxtFileWriter(resultDir.getText());
+                txtFileWriter.writeTXTFiles(txtFiles);
+
+
+                List<String> txtLines = new ArrayList<>();
+                try {
+                    txtLines = Files.readAllLines(Paths.get(pathToResultDir.getPath()));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                for (String line : txtLines) {
+                    textArea.appendText(line + "\n");
+                }
+
+            }
         }
-
-
-        File pathToResultDir = new File(resultDir.getText());
-        if (!pathToResultDir.isFile()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("ERROR");
-            alert.setHeaderText(null);
-            alert.setContentText("Result file is incorrect");
-            alert.showAndWait();
-        }
-
-        FileFinder folderEntry = new FileFinder();
-        folderEntry.pullFilesFromFolder(pathToRootDir);
-        ArrayList<File> txtFiles = folderEntry.getTxtFilesList();
-        TxtFileWriter txtFileWriter = new TxtFileWriter(resultDir.getText());
-        txtFileWriter.writeTXTFiles(txtFiles);
-
-
-        List<String> txtLines = new ArrayList<>();
-        try{
-            txtLines = Files.readAllLines(Paths.get(pathToResultDir.getPath()));
-        }
-        catch (IOException ex){
-
-        }
-
-        for(String line:txtLines){
-            textArea.appendText(line+"\n");
-        }
-
 
     }
 
